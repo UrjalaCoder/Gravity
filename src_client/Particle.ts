@@ -8,9 +8,10 @@ export default class Particle {
   private force: Three.Vector3;
   public mass: number;
   public mesh: Three.Mesh;
+  private material: Three.MeshBasicMaterial;
 
   public static readonly PARTICLE_RADIUS = 0.2;
-  public static readonly MAX_SPEED = 10;
+  public static readonly MAX_SPEED = 1000;
   public static readonly REPULSE = 0.1;
 
   constructor(
@@ -25,13 +26,30 @@ export default class Particle {
     this.acceleration = new Three.Vector3(0, 0, 0);
     this.force = new Three.Vector3(0, 0, 0);
 
-    this.mesh = this.createMesh(this.mass / 10 + 0.1);
+    [this.mesh, this.material] = this.createMesh(this.mass / 10 + 0.1);
     this.mesh.position.set(this.position.x, this.position.y, this.position.z);
 
   }
 
+  getVelocity(): number {
+    return this.velocity.length();
+  }
+
+  getAcceleration(): number {
+    return this.acceleration.length();
+  }
+
+  setColor(relativeSpeed: number): void {
+    if(relativeSpeed == 0 || Number.isNaN(relativeSpeed)) {
+      this.material.color.setRGB(1, 0, 0);
+    } else {
+
+      this.material.color.setRGB(1.0 - relativeSpeed, relativeSpeed, 0.0);
+    }
+  }
+
   // Calculate force from all other particles
-  calculateForce(particles: Particle[], gravitationalConst: number) {
+  calculateForce(particles: Particle[], gravitationalConst: number): Three.Vector3 {
     const totalForce = particles.reduce((result, particle) => {
       // Check that the particle is not this.
       if(particle === this) {
@@ -57,10 +75,10 @@ export default class Particle {
     return totalForce;
   }
 
-  createMesh(radius: number): Three.Mesh {
+  createMesh(radius: number): [Three.Mesh, Three.MeshBasicMaterial] {
     const geometry = new Three.SphereGeometry(radius);
     const material = new Three.MeshBasicMaterial();
-    return new Three.Mesh(geometry, material);
+    return [new Three.Mesh(geometry, material), material];
   }
 
   updateForce(particles: Particle[], gravitationalConst: number) {
@@ -75,6 +93,7 @@ export default class Particle {
     const fz = this.force.z / this.mass;
     this.acceleration.set(fx, fy, fz);
   }
+
 
   updateVelocity() {
     this.velocity.add(this.acceleration);

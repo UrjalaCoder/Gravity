@@ -1,13 +1,20 @@
 import * as Three from 'three';
 import * as dat from 'dat.gui';
-
-import Particle from './Particle';
-
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import Particle from './Particle';
+import calculateRelativeStats from './ParticleHelpers';
 
 const scene = new Three.Scene();
 
 const bSize = 2;
+
+enum ColorMode {
+  NORMAL,
+  SPEED,
+  ACCELERATION
+}
+
+let currColorMode = ColorMode.NORMAL;
 
 const camera = new Three.PerspectiveCamera(
   75,
@@ -55,7 +62,7 @@ function updateParticleCount(newCount: number) {
 }
 
 function createLines(bSize: number): Three.Line {
-  const linesMaterial = new Three.LineBasicMaterial( { color: 0x00FF00 } );
+  const linesMaterial = new Three.LineBasicMaterial( { color: 0xFFFFFF } );
   const linesGeometry = new Three.Geometry();
 
   // Add vertices.
@@ -89,14 +96,12 @@ let gravitationalConst = 40;
 const gravityScalar = 0.00002;
 function createGUI() {
   const GUIObj = {
-    message: 'Hello, world!',
     Gravity: gravitationalConst,
-    'Particle amount': 10
+    'Particle amount': 10,
+    'Display Mode': 'NORMAL',
   };
 
   const gui = new dat.GUI();
-
-  gui.add(GUIObj, 'message');
   const gravityController = gui.add(GUIObj, 'Gravity', 1, 100);
   gravityController.onChange((g: any) => {
     gravitationalConst = g as number;
@@ -105,6 +110,13 @@ function createGUI() {
   const particleCountController = gui.add(GUIObj, 'Particle amount', 1, 50);
   particleCountController.onChange((count: any) => {
     updateParticleCount(count as number);
+  });
+
+  const colorOptions = ['NORMAL', 'SPEED', 'ACCELERATION'];
+  const colorController = gui.add(GUIObj, 'Display Mode', colorOptions);
+  colorController.onChange((mode: any) => {
+    const color = colorOptions.indexOf(mode);
+    currColorMode = color;
   });
 }
 
@@ -148,10 +160,29 @@ const targetFrameRate = 120;
 const bBox = new Three.Vector3(bSize, bSize, bSize);
 function mainLoop() {
   requestAnimationFrame(mainLoop);
+
+  const [relativeSpeeds, relativeAccelerations] = calculateRelativeStats(currParticles);
+
   currParticles.forEach((p) => {
+
+    if(currParticles.length == 1) {
+      p.setColor(1);
+    } else {
+      switch(currColorMode) {
+        case ColorMode.SPEED:
+          p.setColor(relativeSpeeds.get(p) as number);
+          break;
+        case ColorMode.ACCELERATION:
+          p.setColor(relativeAccelerations.get(p) as number);
+          break;
+        default:
+          p.setColor(1);
+      }
+    }
+
     p.update(currParticles, gravitationalConst * gravityScalar, bBox, bSize);
     p.updateMesh();
-  })
+  });
 
   const now = Date.now();
   if(now - lastTime >= (1 / targetFrameRate) * 1000) {
