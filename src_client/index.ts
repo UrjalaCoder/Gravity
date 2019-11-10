@@ -4,17 +4,23 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Particle from './Particle';
 import calculateRelativeStats from './ParticleHelpers';
 
-const scene = new Three.Scene();
-
 const bSize = 2;
-
+const bBox = new Three.Vector3(bSize, bSize, bSize);
 enum ColorMode {
   NORMAL,
   SPEED,
   ACCELERATION
 }
-
 let currColorMode = ColorMode.NORMAL;
+const lines = createLines(bSize);
+const scene = new Three.Scene();
+// Add lines.
+scene.add(lines);
+let gravitationalConst = 40;
+const gravityScalar = 0.00003;
+let articifialForce = new Three.Vector3(0, 0, 0);
+const artificialScalar = 0.000005;
+let currParticles = initializeParticles(10);
 
 const camera = new Three.PerspectiveCamera(
   75,
@@ -89,20 +95,26 @@ function createLines(bSize: number): Three.Line {
   return lines;
 }
 
-const lines = createLines(bSize);
-// Add lines.
-scene.add(lines);
-let gravitationalConst = 40;
-const gravityScalar = 0.00002;
+function stopAllMotion() {
+  currParticles.forEach((p) => {
+    p.stop();
+  });
+}
+
 function createGUI() {
   const GUIObj = {
     Gravity: gravitationalConst,
     'Particle amount': 10,
     'Display Mode': 'NORMAL',
+    'STOP MOTION': stopAllMotion,
+
+    'Force X': 0,
+    'Force Y': 0,
+    'Force Z': 0,
   };
 
   const gui = new dat.GUI();
-  const gravityController = gui.add(GUIObj, 'Gravity', 1, 100);
+  const gravityController = gui.add(GUIObj, 'Gravity', 0, 100);
   gravityController.onChange((g: any) => {
     gravitationalConst = g as number;
   });
@@ -118,6 +130,27 @@ function createGUI() {
     const color = colorOptions.indexOf(mode);
     currColorMode = color;
   });
+
+  gui.add(GUIObj, 'STOP MOTION');
+
+  const articifialForceFolder = gui.addFolder('Force');
+  const forceXController = articifialForceFolder.add(GUIObj, 'Force X', -100, 100);
+  const forceYController = articifialForceFolder.add(GUIObj, 'Force Y', -100, 100);
+  const forceZController = articifialForceFolder.add(GUIObj, 'Force Z', -100, 100);
+
+  forceXController.onChange((x: any) => {
+    articifialForce.setX(x as number);
+  });
+
+  forceYController.onChange((y: any) => {
+    articifialForce.setY(y as number);
+  });
+
+  forceZController.onChange((z: any) => {
+    articifialForce.setZ(z as number);
+  });
+
+  articifialForceFolder.open();
 }
 
 createGUI();
@@ -130,8 +163,6 @@ function initializeParticles(particleCount: number) {
   });
   return currParticles;
 }
-
-let currParticles = initializeParticles(10);
 
 function init(bSize: number) {
 
@@ -157,7 +188,6 @@ function init(bSize: number) {
 let lastTime = 0;
 const targetFrameRate = 120;
 
-const bBox = new Three.Vector3(bSize, bSize, bSize);
 function mainLoop() {
   requestAnimationFrame(mainLoop);
 
@@ -180,7 +210,8 @@ function mainLoop() {
       }
     }
 
-    p.update(currParticles, gravitationalConst * gravityScalar, bBox, bSize);
+    const artificial = articifialForce.clone()
+    p.update(currParticles, gravitationalConst * gravityScalar, bBox, bSize, artificial.multiplyScalar(artificialScalar));
     p.updateMesh();
   });
 

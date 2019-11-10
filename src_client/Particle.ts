@@ -81,9 +81,10 @@ export default class Particle {
     return [new Three.Mesh(geometry, material), material];
   }
 
-  updateForce(particles: Particle[], gravitationalConst: number) {
+  updateForce(particles: Particle[], gravitationalConst: number, force: Three.Vector3) {
     const result = this.calculateForce(particles, gravitationalConst);
     this.force.set(result.x, result.y, result.z);
+    this.force.add(force);
     // console.log(this.force);
   }
 
@@ -105,6 +106,11 @@ export default class Particle {
     }
   }
 
+  stop() {
+    this.velocity.set(0, 0, 0);
+    this.acceleration.set(0, 0, 0);
+  }
+
   updateMesh() {
     // console.log("updateMesh", this.position);
     this.mesh.position.set(this.position.x, this.position.y, this.position.z);
@@ -112,8 +118,8 @@ export default class Particle {
 
   // Bounding box describes the box that the particles should be in.
   // The coordinates describe the positive corner.
-  update(particles: Particle[], gravitationalConst: number, boundingBox: Three.Vector3, boundingBoxSize: number) {
-    this.updateForce(particles, gravitationalConst)
+  update(particles: Particle[], gravitationalConst: number, boundingBox: Three.Vector3, boundingBoxSize: number, force: Three.Vector3) {
+    this.updateForce(particles, gravitationalConst, force);
     this.updateAcceleration();
     this.updateVelocity();
     this.position = this.position.add(this.velocity);
