@@ -9,4 +9,4 @@ app.get('/', (_req: express.Request, res: express.Response) => {
   res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-app.listen(3001);
+app.listen(process.env.PORT || 3001);
