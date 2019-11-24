@@ -190,16 +190,6 @@ function init(bSize: number) {
 let lastTime = 0;
 const targetFrameRate = 120;
 
-function createTotalVector(totalAcceleration: Three.Vector3, color: number): Three.Line {
-  const material = new Three.LineBasicMaterial( { color } );
-  const geometry = new Three.Geometry();
-  geometry.vertices.push(new Three.Vector3(0, 0, 0));
-  geometry.vertices.push(totalAcceleration);
-  return new Three.Line(geometry, material);
-}
-
-let accelerationVectorMesh = createTotalVector(new Three.Vector3(1, 1, 1), 0x00FF00);
-let velocityVectorMesh = createTotalVector(new Three.Vector3(1, 1, 1), 0xFF0000);
 // scene.add(accelerationVectorMesh);
 // scene.add(velocityVectorMesh);
 function mainLoop() {
@@ -230,22 +220,6 @@ function mainLoop() {
     p.update(currParticles, gravitationalConst * gravityScalar, bBox, bSize, artificial.multiplyScalar(artificialScalar));
     p.updateMesh();
   });
-
-  totalAccelerationVector.multiplyScalar(1000);
-  accelerationVectorMesh.geometry.vertices[1].setY(totalAccelerationVector.y);
-  accelerationVectorMesh.geometry.vertices[1].setX(totalAccelerationVector.x);
-  accelerationVectorMesh.geometry.vertices[1].setZ(totalAccelerationVector.z);
-
-  accelerationVectorMesh.geometry.verticesNeedUpdate = true;
-
-
-
-  totalVelocityVector.multiplyScalar(1000);
-  velocityVectorMesh.geometry.vertices[1].setY(totalVelocityVector.y);
-  velocityVectorMesh.geometry.vertices[1].setX(totalVelocityVector.x);
-  velocityVectorMesh.geometry.vertices[1].setZ(totalVelocityVector.z);
-
-  velocityVectorMesh.geometry.verticesNeedUpdate = true;
 
   // console.log(totalAccelerationVector);
   // scene.add(accelerationVectorMesh);
