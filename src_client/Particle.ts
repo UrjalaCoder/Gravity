@@ -3,8 +3,8 @@ import * as Three from 'three';
 
 export default class Particle {
   public position: Three.Vector3;
-  private acceleration: Three.Vector3;
-  private velocity: Three.Vector3;
+  public acceleration: Three.Vector3;
+  public velocity: Three.Vector3;
   private force: Three.Vector3;
   public mass: number;
   public mesh: Three.Mesh;

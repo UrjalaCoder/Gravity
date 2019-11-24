@@ -22,6 +22,7 @@ let articifialForce = new Three.Vector3(0, 0, 0);
 const artificialScalar = 0.000005;
 let currParticles = initializeParticles(10);
 
+
 const camera = new Three.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -29,7 +30,7 @@ const camera = new Three.PerspectiveCamera(
   1000
 );
 
-camera.translateZ(20);
+camera.translateZ(6);
 
 const renderer = new Three.WebGLRenderer()
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -180,6 +181,7 @@ function init(bSize: number) {
   controls.minDistance = 4;
   controls.maxDistance = 8;
   controls.zoomSpeed = 2;
+  controls.enableKeys = false;
 
   controls.maxPolarAngle = Math.PI;
 
@@ -188,13 +190,27 @@ function init(bSize: number) {
 let lastTime = 0;
 const targetFrameRate = 120;
 
+function createTotalVector(totalAcceleration: Three.Vector3, color: number): Three.Line {
+  const material = new Three.LineBasicMaterial( { color } );
+  const geometry = new Three.Geometry();
+  geometry.vertices.push(new Three.Vector3(0, 0, 0));
+  geometry.vertices.push(totalAcceleration);
+  return new Three.Line(geometry, material);
+}
+
+let accelerationVectorMesh = createTotalVector(new Three.Vector3(1, 1, 1), 0x00FF00);
+let velocityVectorMesh = createTotalVector(new Three.Vector3(1, 1, 1), 0xFF0000);
+// scene.add(accelerationVectorMesh);
+// scene.add(velocityVectorMesh);
 function mainLoop() {
   requestAnimationFrame(mainLoop);
 
   const [relativeSpeeds, relativeAccelerations] = calculateRelativeStats(currParticles);
-
+  let totalAccelerationVector = new Three.Vector3(0, 0, 0);
+  let totalVelocityVector = new Three.Vector3(0, 0, 0);
   currParticles.forEach((p) => {
-
+    totalAccelerationVector.add(p.acceleration);
+    totalVelocityVector.add(p.velocity);
     if(currParticles.length == 1) {
       p.setColor(1);
     } else {
@@ -215,6 +231,24 @@ function mainLoop() {
     p.updateMesh();
   });
 
+  totalAccelerationVector.multiplyScalar(1000);
+  accelerationVectorMesh.geometry.vertices[1].setY(totalAccelerationVector.y);
+  accelerationVectorMesh.geometry.vertices[1].setX(totalAccelerationVector.x);
+  accelerationVectorMesh.geometry.vertices[1].setZ(totalAccelerationVector.z);
+
+  accelerationVectorMesh.geometry.verticesNeedUpdate = true;
+
+
+
+  totalVelocityVector.multiplyScalar(1000);
+  velocityVectorMesh.geometry.vertices[1].setY(totalVelocityVector.y);
+  velocityVectorMesh.geometry.vertices[1].setX(totalVelocityVector.x);
+  velocityVectorMesh.geometry.vertices[1].setZ(totalVelocityVector.z);
+
+  velocityVectorMesh.geometry.verticesNeedUpdate = true;
+
+  // console.log(totalAccelerationVector);
+  // scene.add(accelerationVectorMesh);
   const now = Date.now();
   if(now - lastTime >= (1 / targetFrameRate) * 1000) {
     lastTime = Date.now();
