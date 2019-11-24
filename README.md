@@ -3,7 +3,11 @@
 This is a 3D gravity simulation done with ThreeJS and TypeScript.
 
 
+### Preview
 
-### Demo
+![Preview photo 1](https://raw.githubusercontent.com/UrjalaCoder/Gravity/master/docs/preview1.png)
 
-A live demo is available [here.](https://urjalacoder-gravity3d.herokuapp.com/)
+
+### App
+
+A live instance of the application is available [here.](https://urjalacoder-gravity3d.herokuapp.com/)
