@@ -10,4 +10,4 @@ This is a 3D gravity simulation done with ThreeJS and TypeScript.
 
 ### App
 
-A live instance of the application is available [here.](https://urjalacoder-gravity3d.herokuapp.com/)
+~~A live instance of the application is available [here.](https://urjalacoder-gravity3d.herokuapp.com/)~~ (No longer active!)
